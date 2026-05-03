@@ -28,6 +28,7 @@ else:
             st.session_state.tyg = tyg
             st.session_state.triglycerides = triglycerides
             st.session_state.glucose = glucose
+            
             ldl_hdl = ldl / hdl
             total_hdl = total_cholesterol / hdl
             tg_hdl = triglycerides / hdl
