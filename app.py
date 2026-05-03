@@ -25,3 +25,21 @@ if st.button("Calculate"):
         st.write(f"**LDL/HDL Ratio:** {ldl_hdl:.2f}")
         st.write(f"**Total Cholesterol/HDL Ratio:** {total_hdl:.2f}")
         st.write(f"**Triglycerides/HDL Ratio:** {tg_hdl:.2f}")
+
+st.subheader("Learn More")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    if st.button("TyG Index"):
+        st.switch_page("pages/1_TyG_Index.py")
+
+    if st.button("Cholesterol/HDL"):
+        st.switch_page("pages/3_Cholesterol_HDL.py")
+
+with col2:
+    if st.button("LDL/HDL"):
+        st.switch_page("pages/2_LDL_HDL.py")
+
+    if st.button("Triglycerides/HDL"):
+        st.switch_page("pages/4_Triglycerides_HDL.py")
