@@ -1,7 +1,30 @@
 import streamlit as st
 
 
-def show_info_page(page_key):
+INFO_PAGES = [
+    ("TyG Index", "tyg"),
+    ("LDL/HDL", "ldl_hdl"),
+    ("Cholesterol/HDL", "chol_hdl"),
+    ("Triglycerides/HDL", "tg_hdl"),
+]
+
+
+def render_info_nav_buttons(key_prefix: str = "info_nav") -> None:
+    columns = st.columns(4)
+    for column, (label, page_key) in zip(columns, INFO_PAGES):
+        with column:
+            if st.button(label, key=f"{key_prefix}_{page_key}", use_container_width=True):
+                st.session_state.info_page = page_key
+                st.rerun()
+
+
+def render_back_button(key: str = "back_to_calculator_button") -> None:
+    if st.button("Back to Calculator", key=key):
+        st.session_state.info_page = None
+        st.rerun()
+
+
+def show_info_page(page_key: str) -> None:
     if page_key == "tyg":
         show_tyg_page()
     elif page_key == "ldl_hdl":
@@ -13,12 +36,13 @@ def show_info_page(page_key):
     else:
         st.error("Unknown information page.")
 
-    if st.button("Back to Calculator", key="back_to_calculator_button"):
-        st.session_state.info_page = None
-        st.rerun()
+    st.divider()
+    render_back_button(key=f"back_to_calculator_{page_key}")
+    st.subheader("Learn More")
+    render_info_nav_buttons(key_prefix=f"info_page_nav_{page_key}")
 
 
-def show_tyg_page():
+def show_tyg_page() -> None:
     tyg = st.session_state.get("tyg", None)
     triglycerides = st.session_state.get("calc_triglycerides", None)
     glucose = st.session_state.get("calc_glucose", None)
@@ -39,22 +63,18 @@ def show_tyg_page():
         category = "Favorable / insulin sensitive"
         meaning = "Your TyG Index is in a favorable range and generally suggests good insulin sensitivity."
         action = "Maintain current habits. Continue trending over time, especially with changes in diet, training, or weight."
-
     elif tyg < 8.5:
         category = "Borderline"
         meaning = "Your TyG Index is approaching levels where insulin resistance risk may begin to increase."
         action = "Monitor over time. Small improvements in triglycerides, fasting glucose, sleep, and diet quality can move this lower."
-
     elif tyg < 9.0:
         category = "Likely insulin resistance"
         meaning = "Your TyG Index is in a range commonly associated with insulin resistance."
         action = "Focus on improving metabolic health: reduce processed carbs, improve triglycerides, monitor glucose trends, and maintain consistent aerobic training."
-
     elif tyg < 9.5:
         category = "High risk"
         meaning = "Your TyG Index is elevated and suggests increased risk of insulin resistance and metabolic dysfunction."
         action = "Consider a more structured approach: diet adjustments, weight management, increased activity, and possibly additional labs such as fasting insulin or A1C."
-
     else:
         category = "Very high risk"
         meaning = "Your TyG Index is significantly elevated and strongly associated with insulin resistance and higher cardiometabolic risk."
@@ -124,8 +144,8 @@ People use TyG to:
 
 - See whether diet changes are improving insulin sensitivity
 - Decide how aggressive carbohydrate reduction or carb cycling should be
-- Track metabolic recovery alongside VOâ‚‚ max, fitness, and body composition
-- Flag hidden risk even when standard labs look â€œnormalâ€
+- Track metabolic recovery alongside VO2 max, fitness, and body composition
+- Flag hidden risk even when standard labs look normal
 """)
 
     st.subheader("Bottom line")
@@ -138,16 +158,16 @@ If your goal is long-term performance, cardiovascular health, and metabolic resi
     st.caption("TyG is a screening and trend marker, not a standalone diagnosis. Interpretation depends on the full clinical picture.")
 
 
-def show_ldl_hdl_page():
+def show_ldl_hdl_page() -> None:
     st.header("LDL/HDL Ratio")
     st.write("LDL/HDL content here.")
 
 
-def show_chol_hdl_page():
+def show_chol_hdl_page() -> None:
     st.header("Total Cholesterol/HDL Ratio")
     st.write("Total Cholesterol/HDL content here.")
 
 
-def show_tg_hdl_page():
+def show_tg_hdl_page() -> None:
     st.header("Triglycerides/HDL Ratio")
     st.write("Triglycerides/HDL content here.")
