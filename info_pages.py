@@ -25,6 +25,10 @@ def show_tyg_page():
     
     st.header("TyG Index")
 
+    if triglycerides is None or glucose is None:
+        st.warning("Triglycerides and fasting glucose are missing. Return to the calculator and run the blood panel again.")
+        return
+    
     if tyg is None:
         st.warning("No TyG result is available yet. Return to the calculator and run your blood panel first.")
         return
