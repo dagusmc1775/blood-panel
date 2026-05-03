@@ -27,6 +27,8 @@ def initialize_session_state() -> None:
         "tg_hdl": None,
         "calc_triglycerides": None,
         "calc_glucose": None,
+        "calc_ldl": None,
+        "calc_hdl": None,
         "total_cholesterol": 0,
         "ldl": 0,
         "hdl": 0,
@@ -71,6 +73,8 @@ def calculate_results(
 
     st.session_state.tyg = math.log((triglycerides * glucose) / 2)
     st.session_state.ldl_hdl = ldl / hdl
+    st.session_state.calc_ldl = ldl
+    st.session_state.calc_hdl = hdl
     st.session_state.total_hdl = total_cholesterol / hdl
     st.session_state.tg_hdl = triglycerides / hdl
     st.session_state.calc_triglycerides = triglycerides
@@ -112,3 +116,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
