@@ -31,31 +31,111 @@ def show_tyg_page():
 
     st.subheader(f"Your TyG Index: {tyg:.2f}")
 
+    # Base TyG category
     if tyg < 8.0:
         category = "Favorable / insulin sensitive"
         meaning = "Your TyG Index is in a favorable range and generally suggests good insulin sensitivity."
         action = "Maintain current habits. Continue trending over time, especially with changes in diet, training, or weight."
-    
+
     elif tyg < 8.5:
         category = "Borderline"
         meaning = "Your TyG Index is approaching levels where insulin resistance risk may begin to increase."
         action = "Monitor over time. Small improvements in triglycerides, fasting glucose, sleep, and diet quality can move this lower."
-    
+
     elif tyg < 9.0:
         category = "Likely insulin resistance"
         meaning = "Your TyG Index is in a range commonly associated with insulin resistance."
         action = "Focus on improving metabolic health: reduce processed carbs, improve triglycerides, monitor glucose trends, and maintain consistent aerobic training."
-    
+
     elif tyg < 9.5:
         category = "High risk"
         meaning = "Your TyG Index is elevated and suggests increased risk of insulin resistance and metabolic dysfunction."
         action = "Consider a more structured approach: diet adjustments, weight management, increased activity, and possibly additional labs such as fasting insulin or A1C."
-    
+
     else:
         category = "Very high risk"
         meaning = "Your TyG Index is significantly elevated and strongly associated with insulin resistance and higher cardiometabolic risk."
         action = "This warrants attention. Consider working with a clinician and reviewing full metabolic markers including A1C, fasting insulin, triglycerides, liver markers, and body composition."
-    
+
+    # Triglyceride context
+    if triglycerides < 100:
+        tg_context = "Your triglycerides are favorable. They are probably not the main reason for a higher TyG score."
+    elif triglycerides < 150:
+        tg_context = "Your triglycerides are acceptable but not ideal. They may be contributing modestly to your TyG score."
+    elif triglycerides < 200:
+        tg_context = "Your triglycerides are borderline high and are likely contributing meaningfully to your TyG score."
+    else:
+        tg_context = "Your triglycerides are high and are likely a major driver of your TyG score."
+
+    # Glucose context
+    if glucose < 100:
+        glucose_context = "Your fasting glucose is in the normal range."
+    elif glucose < 126:
+        glucose_context = "Your fasting glucose is in the prediabetes range and is likely contributing to your TyG score."
+    else:
+        glucose_context = "Your fasting glucose is in the diabetes-range threshold and should be reviewed with a clinician."
+
+    # Driver interpretation
+    if triglycerides >= 150 and glucose >= 100:
+        driver = "Both triglycerides and fasting glucose are pushing your TyG higher."
+    elif triglycerides >= 150:
+        driver = "Your TyG score appears primarily triglyceride-driven."
+    elif glucose >= 100:
+        driver = "Your TyG score appears primarily glucose-driven."
+    else:
+        driver = "Neither triglycerides nor fasting glucose is individually high, so the combined TyG score should mainly be used as a trend marker."
+
+    st.write(f"**Category:** {category}")
+    st.write(meaning)
+
+    st.subheader("Your inputs")
+    st.write(f"**Triglycerides:** {triglycerides} mg/dL")
+    st.write(f"**Fasting Glucose:** {glucose} mg/dL")
+
+    st.subheader("What is driving your TyG score?")
+    st.write(driver)
+    st.write(tg_context)
+    st.write(glucose_context)
+
+    st.subheader("What this number indicates")
+    st.write(action)
+
+    st.subheader("Who benefits most from knowing TyG?")
+    st.write("""
+TyG is especially useful if you:
+
+- Are physically active but struggle with diet
+- Have normal A1C but elevated triglycerides
+- Are doing low-carb, keto, or intermittent fasting
+- Want to reduce long-term heart disease risk
+- Are monitoring metabolic health, not just weight
+""")
+
+    st.subheader("What it is not")
+    st.write("""
+- It is not a diagnosis
+- It does not replace an oral glucose tolerance test, fasting insulin, HOMA-IR, or clamp studies
+- It is best used as a trend marker over time
+""")
+
+    st.subheader("Practical use")
+    st.write("""
+People use TyG to:
+
+- See whether diet changes are improving insulin sensitivity
+- Decide how aggressive carbohydrate reduction or carb cycling should be
+- Track metabolic recovery alongside VO₂ max, fitness, and body composition
+- Flag hidden risk even when standard labs look “normal”
+""")
+
+    st.subheader("Bottom line")
+    st.write("""
+The TyG Index is inexpensive, accessible, predictive, and actionable.
+
+If your goal is long-term performance, cardiovascular health, and metabolic resilience, TyG can provide insight that A1C alone may miss.
+""")
+
+    st.caption("TyG is a screening and trend marker, not a standalone diagnosis. Interpretation depends on the full clinical picture.")    
     st.write(f"**Category:** {category}")
     st.write(meaning)
 
