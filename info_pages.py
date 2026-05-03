@@ -42,36 +42,105 @@ def show_info_page(page_key: str) -> None:
     render_info_nav_buttons(key_prefix=f"info_page_nav_{page_key}")
 
 
-def write_section(title: str, body: str | list[str]) -> None:
-    st.subheader(title)
-    if isinstance(body, list):
-        for item in body:
-            st.write(item)
-    else:
-        st.write(body)
+def write_lines(lines: list[str]) -> None:
+    for line in lines:
+        st.write(line)
 
 
-def write_standard_page(
+def render_definition_expanders() -> None:
+    st.subheader("Expanders / definitions")
+    with st.expander("What is atherogenic burden?"):
+        st.write(
+            "Atherogenic burden is the amount of cholesterol-carrying particle exposure that can contribute to plaque formation. "
+            "LDL-C is one clue, but ApoB and LDL-P can better estimate particle burden."
+        )
+    with st.expander("What is metabolic stress?"):
+        st.write(
+            "Metabolic stress means the lipid and glucose pattern may reflect insulin resistance, excess energy storage, liver fat, "
+            "poor sleep, alcohol effect, high refined carbohydrate intake, or low activity."
+        )
+    with st.expander("What does this ratio miss?"):
+        st.write(
+            "Ratios do not diagnose disease and do not directly measure insulin, ApoB, LDL-P, inflammation, oxidation, plaque, "
+            "HDL function, or medication effects. Use them as decision-support signals, not final answers."
+        )
+    with st.expander("Advanced markers to consider"):
+        st.write(
+            "ApoB estimates the number of atherogenic particles. LDL-P/NMR estimates LDL particle number and size. "
+            "CAC score images calcified coronary plaque. Non-HDL cholesterol captures cholesterol carried by all non-HDL particles. "
+            "hs-CRP can add inflammatory context."
+        )
+
+
+def render_metric_report(
     header: str,
-    result_line: str,
-    input_lines: list[str],
+    result_lines: list[str],
     category: str,
     meaning: str,
     driver_lines: list[str],
+    agreement: str,
     indicates: str,
     does_not_tell: str,
     practical_lines: list[str],
     bottom_line: str,
 ) -> None:
     st.header(header)
-    write_section("Your Result", [result_line, *input_lines])
-    write_section("Category", f"**{category}**")
-    write_section("What it means", meaning)
-    write_section("What is driving it", driver_lines)
-    write_section("What this indicates", indicates)
-    write_section("What this does NOT tell you", does_not_tell)
-    write_section("Practical use / next steps", practical_lines)
-    write_section("Bottom line", bottom_line)
+    st.caption("Key terms such as atherogenic burden, metabolic stress, insulin resistance, ApoB, LDL-P, CAC score, and non-HDL cholesterol are defined in the expanders below.")
+    st.subheader("Your Result")
+    write_lines(result_lines)
+    st.subheader("Category")
+    st.write(f"**{category}**")
+    st.subheader("What it means")
+    st.write(meaning)
+    st.subheader("What is driving it")
+    write_lines([agreement, *driver_lines])
+    st.subheader("What this indicates")
+    st.write(indicates)
+    st.subheader("What this does NOT tell you")
+    st.write(does_not_tell)
+    st.subheader("Practical use / next steps")
+    write_lines(practical_lines)
+    st.subheader("Bottom line")
+    st.write(bottom_line)
+    render_definition_expanders()
+
+
+def classify_tg(triglycerides: float) -> str:
+    if triglycerides < 100:
+        return "favorable"
+    if triglycerides < 150:
+        return "acceptable"
+    if triglycerides < 200:
+        return "borderline high"
+    return "high"
+
+
+def classify_glucose(glucose: float) -> str:
+    if glucose < 100:
+        return "normal"
+    if glucose < 126:
+        return "prediabetes-range"
+    return "diabetes-range threshold"
+
+
+def classify_hdl(hdl: float) -> str:
+    if hdl < 40:
+        return "low"
+    if hdl < 60:
+        return "acceptable"
+    return "protective"
+
+
+def classify_ldl(ldl: float) -> str:
+    if ldl < 100:
+        return "favorable"
+    if ldl < 130:
+        return "near optimal or mildly elevated"
+    if ldl < 160:
+        return "borderline high"
+    if ldl < 190:
+        return "high"
+    return "very high"
 
 
 def show_tyg_page() -> None:
@@ -86,81 +155,65 @@ def show_tyg_page() -> None:
 
     if tyg < 8.0:
         category = "Favorable / insulin sensitive"
-        meaning = "This is a favorable TyG pattern and generally suggests good insulin sensitivity."
-        action = "Maintain the habits supporting this result and use TyG as a trend marker during diet or training changes."
+        meaning = "This is a favorable TyG pattern and generally fits lower insulin resistance risk."
+        action = "Maintain the habits supporting this result; use it as a trend marker during diet or training changes."
     elif tyg < 8.5:
         category = "Borderline"
-        meaning = "This is an early watch zone. Insulin resistance risk may begin to rise even if single labs still look acceptable."
-        action = "Look for small improvements in triglycerides, fasting glucose, sleep, and carbohydrate quality."
+        meaning = "This is an early watch zone. The combined triglyceride-glucose product is starting to rise."
+        action = "Look for small improvements in triglycerides, fasting glucose, sleep, alcohol intake, and carbohydrate quality."
     elif tyg < 9.0:
         category = "Likely insulin resistance"
-        meaning = "This range is commonly associated with insulin resistance and less favorable metabolic health."
-        action = "Prioritize triglyceride reduction, glucose control, weight or waist improvement if relevant, and consistent aerobic training."
+        meaning = "This range commonly aligns with insulin resistance or metabolic stress."
+        action = "Prioritize triglyceride reduction, glucose control, waist trend, and consistent aerobic training."
     elif tyg < 9.5:
         category = "High risk"
-        meaning = "This is a strong metabolic warning signal and suggests elevated insulin resistance risk."
-        action = "Consider a structured metabolic review, including A1C, fasting insulin, liver markers, waist trend, and diet pattern."
+        meaning = "This is a strong metabolic warning signal. It should not be brushed off as noise."
+        action = "Consider a structured metabolic review with A1C, fasting insulin, liver markers, and waist trend."
     else:
         category = "Very high risk"
-        meaning = "This is a very strong signal for metabolic dysfunction risk and should not be treated as a minor fluctuation."
-        action = "Review this with a clinician and consider additional testing such as A1C, fasting insulin, liver markers, and full cardiometabolic review."
+        meaning = "This is a very strong signal for metabolic dysfunction risk."
+        action = "Review this with a clinician and consider deeper cardiometabolic testing."
 
-    if triglycerides < 100:
-        tg_context = "Triglycerides are favorable on their own."
-    elif triglycerides < 150:
-        tg_context = "Triglycerides are acceptable but not ideal."
-    elif triglycerides < 200:
-        tg_context = "Triglycerides are borderline high and likely contribute to TyG."
-    else:
-        tg_context = "Triglycerides are high and are a major TyG driver."
-
-    if glucose < 100:
-        glucose_context = "Fasting glucose is in the normal range."
-    elif glucose < 126:
-        glucose_context = "Fasting glucose is in the prediabetes range and likely contributes to TyG."
-    else:
-        glucose_context = "Fasting glucose is at a diabetes-range threshold and should be reviewed with a clinician."
-
+    tg_status = classify_tg(triglycerides)
+    glucose_status = classify_glucose(glucose)
     if triglycerides >= 150 and glucose >= 100:
+        agreement = "The ratio looks poor and the underlying numbers confirm concern."
         driver = "Both triglycerides and fasting glucose are pushing TyG higher."
     elif triglycerides >= 150:
-        driver = "The TyG result appears primarily triglyceride-driven."
+        agreement = "The ratio agrees with the triglyceride signal."
+        driver = "TyG appears primarily triglyceride-driven."
     elif glucose >= 100:
-        driver = "The TyG result appears primarily glucose-driven."
+        agreement = "The ratio agrees with the fasting glucose signal."
+        driver = "TyG appears primarily glucose-driven."
     elif tyg >= 8.5:
-        driver = "TyG is elevated even though triglycerides and glucose are not individually high. Their combined product is still elevated relative to ideal and should be trended."
+        agreement = "The result is mixed and should be interpreted with additional markers."
+        driver = "TyG is elevated even though neither triglycerides nor glucose crosses an individual threshold; their combined product is still elevated relative to ideal."
+    elif tyg >= 8.0:
+        agreement = "The ratio is watchful even though the individual inputs are not frankly high."
+        driver = "Small glucose differences such as 85 vs 88 usually do not materially change interpretation unless triglycerides are also elevated. Here, trend matters more than one point."
     else:
-        driver = "Neither triglycerides nor glucose is concerning by itself, which fits the favorable TyG category."
+        agreement = "The ratio agrees with the underlying numbers."
+        driver = "Triglycerides and glucose both support the favorable TyG category."
 
-    indicates = (
-        "Signal strength: TyG is a strong directional indicator of metabolic health because it combines fasting triglycerides and glucose. "
-        "It is most useful when tracked over time alongside A1C, waist, fitness, and diet changes."
-    )
-    does_not_tell = (
-        "TyG is not a diagnosis and does not replace fasting insulin, HOMA-IR, oral glucose tolerance testing, A1C, or clinician review. "
-        "It also does not identify whether triglycerides, liver fat, sleep, medication, or diet is the root cause."
-    )
-    practical = [
-        action,
-        "Trend guidance: most useful when tracked over time alongside triglycerides and glucose.",
-        "Common scenario: a low-carb or keto profile may show excellent glucose but still needs triglycerides monitored because TyG uses both numbers.",
-    ]
-    bottom = "TyG is inexpensive, accessible, predictive, and actionable, but it works best as a trend marker within the full metabolic picture."
-
-    write_standard_page(
+    render_metric_report(
         "TyG Index",
-        f"**Your TyG Index:** {tyg:.2f}",
         [
-            f"**Triglycerides:** {triglycerides} mg/dL",
-            f"**Fasting Glucose:** {glucose} mg/dL",
+            f"**TyG Index:** {tyg:.2f}",
+            f"**Triglycerides:** {triglycerides} mg/dL ({tg_status})",
+            f"**Fasting Glucose:** {glucose} mg/dL ({glucose_status})",
         ],
         category,
         meaning,
-        [driver, tg_context, glucose_context],
-        indicates,
-        does_not_tell,
-        practical,
-        bottom,
+        [driver, "TyG is driven by the combination of triglycerides and glucose, not either number alone."],
+        agreement,
+        "Signal strength: TyG is a strong directional indicator of metabolic health and insulin resistance risk.",
+        "TyG does not diagnose diabetes, measure insulin directly, or identify whether sleep, liver fat, diet, medication, or alcohol is the root cause.",
+        [
+            action,
+            "Trend guidance: most useful when tracked over time alongside triglycerides, fasting glucose, A1C, waist, and fitness changes.",
+            "Common scenario: a low-carb or keto profile may have good glucose but still needs triglycerides watched because TyG uses both values.",
+        ],
+        "TyG is inexpensive and actionable, but it is best used as a trend marker within the full metabolic picture.",
     )
 
 
@@ -176,84 +229,68 @@ def show_ldl_hdl_page() -> None:
 
     if ldl_hdl < 2.0:
         category = "Favorable"
-        meaning = "This ratio suggests a favorable balance between LDL burden and HDL support."
-        action = "Maintain the pattern and keep checking whether ApoB, triglycerides, blood pressure, and family history agree."
+        meaning = "This ratio suggests a favorable balance between LDL-C burden and HDL-C support."
+        action = "Maintain the pattern, but still compare it with ApoB, blood pressure, family history, and triglycerides."
     elif ldl_hdl < 2.5:
         category = "Good / near ideal"
-        meaning = "This is near ideal, but risk can still differ depending on LDL particle burden and overall context."
-        action = "Continue monitoring trends and focus on keeping LDL appropriate for your personal risk profile."
+        meaning = "This is near ideal, but risk can still differ depending on particle burden and overall context."
+        action = "Keep trending LDL-C and HDL-C; consider ApoB if LDL-C is rising or family history is strong."
     elif ldl_hdl < 3.5:
         category = "Borderline / watchful"
-        meaning = "This ratio is drifting into a watch zone where LDL burden may be outpacing HDL support."
-        action = "Identify whether LDL is rising, HDL is weak, or both are moving in the wrong direction."
+        meaning = "The balance is drifting into a watch zone where LDL-C burden may be outpacing HDL-C support."
+        action = "Identify whether LDL-C is rising, HDL-C is weak, or both are moving in the wrong direction."
     elif ldl_hdl < 5.0:
         category = "Elevated risk"
-        meaning = "This ratio points to a less favorable lipid balance and may reflect higher atherogenic exposure."
-        action = "Consider a more complete cardiovascular review, especially ApoB or LDL-P, inflammation markers, and blood pressure."
+        meaning = "This points to a less favorable lipid balance and possible higher atherogenic burden."
+        action = "Consider a fuller cardiovascular review, especially ApoB or LDL-P, inflammation markers, and blood pressure."
     else:
         category = "High risk"
-        meaning = "This ratio is high and may indicate a substantially unfavorable LDL to HDL balance."
-        action = "Review this with a clinician, particularly if LDL is high, HDL is low, or family history is concerning."
+        meaning = "This ratio is high and may reflect a substantially unfavorable LDL-C to HDL-C pattern."
+        action = "Review this with a clinician, particularly if LDL-C is high, HDL-C is low, or family history is concerning."
 
-    if ldl < 100:
-        ldl_context = "LDL-C is favorable."
-    elif ldl < 130:
-        ldl_context = "LDL-C is near optimal or mildly elevated depending on risk profile."
-    elif ldl < 160:
-        ldl_context = "LDL-C is borderline high."
-    elif ldl < 190:
-        ldl_context = "LDL-C is high."
-    else:
-        ldl_context = "LDL-C is very high; possible familial or genetic risk should be reviewed with a clinician."
-
-    if hdl < 40:
-        hdl_context = "HDL-C is low for men and can amplify risk."
-    elif hdl < 60:
-        hdl_context = "HDL-C is acceptable but not strongly protective."
-    else:
-        hdl_context = "HDL-C is generally protective."
-
+    ldl_status = classify_ldl(ldl)
+    hdl_status = classify_hdl(hdl)
     if ldl >= 130 and hdl < 40:
-        driver = "Both high LDL-C and low HDL-C are worsening the ratio, so the signal is more concerning."
+        agreement = "The ratio looks poor and the underlying drivers confirm concern."
+        driver = "Both high LDL-C and low HDL-C are worsening the ratio."
     elif ldl >= 130 and hdl >= 60:
-        driver = "LDL-C is elevated, but high HDL-C is partially offsetting the ratio. That does not erase LDL-related risk."
+        agreement = "The result is mixed and should be interpreted with additional markers."
+        driver = "High HDL-C is partially offsetting elevated LDL-C, but it does not erase LDL-related particle risk."
     elif ldl >= 130:
-        driver = "The ratio appears primarily LDL-driven."
+        agreement = "The ratio agrees with the LDL-C concern."
+        driver = "The result appears primarily LDL-driven."
     elif ldl < 100 and hdl < 60:
-        driver = "LDL-C is favorable, but HDL-C is not strongly protective, which keeps the ratio from looking even better."
+        agreement = "The ratio looks decent, but one underlying driver is not ideal."
+        driver = "LDL-C is favorable, but HDL-C is not strongly protective."
     elif hdl < 40:
-        driver = "The ratio appears primarily HDL-driven because low HDL-C is weakening the denominator."
+        agreement = "The ratio is being pulled in the wrong direction by low HDL-C."
+        driver = "Low HDL-C is the main driver."
     elif ldl_hdl >= 3.5:
-        driver = "The ratio is unfavorable even without a single extreme value, so the overall lipid balance deserves attention."
+        agreement = "The ratio looks poor even without one extreme value."
+        driver = "The combined LDL-C and HDL-C balance is unfavorable and deserves more context."
     else:
-        driver = "The ratio is supported by a reasonable LDL-C and HDL-C balance."
+        agreement = "The ratio agrees with the underlying numbers."
+        driver = "LDL-C and HDL-C both support the current category."
 
-    indicates = (
-        "Signal strength: LDL/HDL is a directional cardiovascular signal, but it is weaker than ApoB or LDL particle measures for particle burden. "
-        "LDL carries cholesterol to tissues, including artery walls, while HDL helps move cholesterol back to the liver."
-    )
-    does_not_tell = (
-        "LDL/HDL does not show ApoB, LDL-P, particle size, oxidation status, CAC score, or inflammatory risk. "
-        "LDL is necessary; the goal is not zero LDL, but LDL that is appropriate for risk profile."
-    )
-    practical = [
-        action,
-        "Trend guidance: useful as a snapshot, but better when tracked with LDL-C, HDL-C, triglycerides, and ApoB if available.",
-        "Common scenario: an endurance athlete may have high HDL that improves the ratio, but ApoB or LDL-P can still matter if LDL-C is elevated.",
-    ]
-    bottom = "LDL/HDL helps separate atherogenic burden from protective capacity, but it should not replace ApoB, LDL-P, CAC score, or inflammatory markers."
-
-    write_standard_page(
+    render_metric_report(
         "LDL/HDL Ratio",
-        f"**Your LDL/HDL Ratio:** {ldl_hdl:.2f}",
-        [f"**LDL-C:** {ldl} mg/dL", f"**HDL-C:** {hdl} mg/dL"],
+        [
+            f"**LDL/HDL Ratio:** {ldl_hdl:.2f}",
+            f"**LDL-C:** {ldl} mg/dL ({ldl_status})",
+            f"**HDL-C:** {hdl} mg/dL ({hdl_status})",
+        ],
         category,
         meaning,
-        [driver, ldl_context, hdl_context],
-        indicates,
-        does_not_tell,
-        practical,
-        bottom,
+        [driver],
+        agreement,
+        "Signal strength: LDL/HDL is a directional cardiovascular signal, but ApoB and LDL-P are stronger for particle burden.",
+        "LDL/HDL does not show ApoB, LDL-P, particle size, oxidation, CAC score, HDL function, or inflammatory risk.",
+        [
+            action,
+            "Trend guidance: better as a trend with LDL-C, HDL-C, triglycerides, non-HDL cholesterol, and ApoB if available.",
+            "Common scenario: an endurance athlete may have high HDL-C that improves the ratio while ApoB or LDL-P still matters if LDL-C is elevated.",
+        ],
+        "LDL/HDL is useful, but it does not replace ApoB, LDL-P, CAC score, or inflammatory markers.",
     )
 
 
@@ -271,71 +308,77 @@ def show_chol_hdl_page() -> None:
 
     if total_hdl < 3.5:
         category = "Favorable"
-        meaning = "This ratio suggests total cholesterol is well balanced against HDL-C."
-        action = "Maintain the pattern, but still review LDL-C, triglycerides, and personal risk factors."
+        meaning = "Total cholesterol is well balanced against HDL-C."
+        action = "Maintain the pattern while checking whether LDL-C and triglycerides also agree."
     elif total_hdl < 5.0:
         category = "Moderate / watchful"
-        meaning = "This ratio is acceptable for many people but worth watching if LDL-C or triglycerides are elevated."
-        action = "Look at the full lipid panel to see whether total cholesterol is being driven by LDL-C, HDL-C, or triglyceride-rich particles."
+        meaning = "The ratio is moderate, so the entered LDL-C and triglycerides determine whether this is reassuring or mixed."
+        action = "Use the full lipid panel, not total cholesterol alone, to decide how much attention this needs."
     elif total_hdl < 6.0:
         category = "Elevated risk"
-        meaning = "This ratio suggests a less favorable cholesterol balance and may indicate increased cardiovascular risk."
-        action = "Consider lifestyle changes and a more complete risk review, especially if LDL-C or triglycerides are also high."
+        meaning = "The cholesterol balance is less favorable and may indicate increased cardiovascular risk."
+        action = "Look for the driver: high total cholesterol, low HDL-C, elevated LDL-C, or elevated triglycerides."
     else:
         category = "High risk"
-        meaning = "This ratio is high and suggests total cholesterol is unfavorable relative to HDL-C."
-        action = "Review this pattern with a clinician, especially if HDL-C is low or LDL-C and triglycerides are elevated."
+        meaning = "Total cholesterol is unfavorable relative to HDL-C."
+        action = "Review this pattern with a clinician, especially if LDL-C, triglycerides, or blood pressure are also elevated."
 
+    ldl_concerning = ldl is not None and ldl >= 130
+    tg_concerning = triglycerides is not None and triglycerides >= 150
     if total_cholesterol >= 240 and hdl < 40:
+        agreement = "The ratio looks poor and the underlying drivers confirm concern."
         driver = "High total cholesterol and low HDL-C are both worsening the ratio."
     elif total_cholesterol >= 240 and hdl >= 60:
-        driver = "Total cholesterol is high, but favorable HDL-C is partially offsetting the ratio. LDL-C and triglycerides still decide whether that is reassuring."
-    elif total_cholesterol >= 240:
-        driver = "High total cholesterol appears to be the main driver."
-    elif hdl < 40:
-        driver = "Low HDL-C is worsening the ratio even if total cholesterol is not extremely high."
+        agreement = "The result is mixed and should be interpreted with additional markers."
+        driver = "Favorable HDL-C is offsetting higher total cholesterol; LDL-C, triglycerides, ApoB, and non-HDL cholesterol decide whether that is reassuring."
+    elif total_hdl < 5.0 and (ldl_concerning or tg_concerning):
+        agreement = "The ratio looks acceptable, but underlying drivers are concerning."
+        drivers = []
+        if ldl_concerning:
+            drivers.append("LDL-C is elevated")
+        if tg_concerning:
+            drivers.append("triglycerides are elevated")
+        driver = f"This ratio is acceptable, but {' and '.join(drivers)}, which adds risk context despite the ratio."
+    elif total_hdl >= 5.0 and (ldl_concerning or tg_concerning or hdl < 40):
+        agreement = "The ratio looks poor and the underlying numbers support concern."
+        driver = "The entered LDL-C, triglycerides, or HDL-C pattern reinforces the elevated ratio."
     elif hdl >= 60 and total_cholesterol >= 200:
-        driver = "Favorable HDL-C is helping offset higher total cholesterol. This can be benign or concerning depending on LDL-C and triglycerides."
+        agreement = "The result is mixed and should be interpreted with additional markers."
+        driver = "High HDL-C is helping offset higher total cholesterol. Total cholesterol alone can be misleading here."
     elif total_hdl >= 5.0:
-        driver = "The ratio is elevated, so the balance is unfavorable even if no single value looks extreme."
+        agreement = "The ratio looks poor even without a single obvious driver."
+        driver = "The balance between total cholesterol and HDL-C is unfavorable enough to warrant full-panel review."
     else:
-        driver = "The ratio is supported by a reasonable total cholesterol and HDL-C balance."
+        agreement = "The ratio agrees with the underlying numbers."
+        driver = "Total cholesterol and HDL-C are reasonably aligned with the category."
 
-    contribution_notes = []
-    if ldl is not None and ldl >= 130:
-        contribution_notes.append("LDL-C appears to be contributing to the total cholesterol burden.")
-    if triglycerides is not None and triglycerides >= 150:
-        contribution_notes.append("Triglycerides may indicate more triglyceride-rich particles contributing to risk.")
-    if not contribution_notes:
-        contribution_notes.append("LDL-C and triglycerides do not stand out as obvious drivers, so the ratio should be interpreted in the full panel context.")
+    contribution = []
+    if ldl_concerning:
+        contribution.append("LDL-C appears to contribute to atherogenic burden.")
+    if tg_concerning:
+        contribution.append("Triglycerides suggest possible metabolic stress or triglyceride-rich particle burden.")
+    if not contribution:
+        contribution.append("LDL-C and triglycerides do not stand out as obvious drivers in the entered values.")
 
-    indicates = (
-        "Signal strength: this is a broad directional signal. Total cholesterol alone can be misleading because it combines LDL-C, HDL-C, and other cholesterol fractions."
-    )
-    does_not_tell = (
-        "This ratio does not show ApoB, LDL particle number, LDL particle size, inflammation, CAC score, or whether high total cholesterol is mostly protective HDL-C versus atherogenic particles."
-    )
-    practical = [
-        action,
-        "Trend guidance: useful as a snapshot, but better tracked over time with LDL-C, HDL-C, triglycerides, and non-HDL cholesterol.",
-        "Common scenario: a low-carb or endurance profile may raise total cholesterol while HDL-C is strong, so LDL-C, ApoB, and triglycerides become important context."
-    ]
-    bottom = "Total Cholesterol/HDL is useful for quick context, but total cholesterol alone can be misleading. The full lipid pattern matters more."
-
-    write_standard_page(
+    render_metric_report(
         "Total Cholesterol/HDL Ratio",
-        f"**Your Total Cholesterol/HDL Ratio:** {total_hdl:.2f}",
         [
+            f"**Total Cholesterol/HDL Ratio:** {total_hdl:.2f}",
             f"**Total Cholesterol:** {total_cholesterol} mg/dL",
-            f"**HDL-C:** {hdl} mg/dL",
+            f"**HDL-C:** {hdl} mg/dL ({classify_hdl(hdl)})",
         ],
         category,
         meaning,
-        [driver, *contribution_notes],
-        indicates,
-        does_not_tell,
-        practical,
-        bottom,
+        [driver, *contribution],
+        agreement,
+        "Signal strength: this is a broad directional signal. Total cholesterol alone can be misleading because it combines protective and atherogenic fractions.",
+        "This ratio does not show ApoB, LDL-P, LDL particle size, inflammation, CAC score, or whether high total cholesterol is mostly HDL-C versus atherogenic particles.",
+        [
+            action,
+            "Trend guidance: best tracked with LDL-C, HDL-C, triglycerides, non-HDL cholesterol, and ApoB when available.",
+            "Common scenario: a low-carb or endurance profile may raise total cholesterol while HDL-C is strong; ApoB and triglycerides help separate benign from concerning patterns.",
+        ],
+        "Total Cholesterol/HDL adds context, but the full lipid pattern matters more than total cholesterol alone.",
     )
 
 
@@ -357,61 +400,60 @@ def show_tg_hdl_page() -> None:
     elif tg_hdl < 3.0:
         category = "Mildly watchful"
         meaning = "This is a mild watch zone where metabolic risk may be starting to rise."
-        action = "Watch triglyceride trends, carbohydrate quality, alcohol intake, sleep, and waist changes."
+        action = "Watch triglyceride trend, carbohydrate quality, alcohol intake, sleep, and waist changes."
     elif tg_hdl < 4.0:
         category = "Moderate metabolic risk"
         meaning = "This ratio suggests a more concerning metabolic pattern often linked with insulin resistance."
-        action = "Prioritize triglyceride reduction, improved glucose control, and regular aerobic activity."
+        action = "Prioritize triglyceride reduction, glucose control, and regular aerobic activity."
     else:
         category = "High metabolic risk"
         meaning = "This ratio is high and can be a strong warning sign for insulin resistance or metabolic syndrome risk."
         action = "Consider a focused metabolic review, especially if fasting glucose, A1C, waist, or blood pressure are also elevated."
 
     if triglycerides >= 150 and hdl < 40:
-        driver = "Both high triglycerides and low HDL-C are worsening the ratio, which strengthens the metabolic risk signal."
+        agreement = "The ratio looks poor and the underlying drivers confirm concern."
+        driver = "High triglycerides and low HDL-C are both worsening the ratio."
     elif triglycerides >= 150 and hdl >= 40:
+        agreement = "The ratio agrees with the triglyceride concern."
         driver = "High triglycerides are driving the ratio despite acceptable HDL-C."
     elif triglycerides < 100 and hdl < 40:
+        agreement = "The ratio may look mixed because one driver is favorable and one is weak."
         driver = "Triglycerides are favorable, but low HDL-C is weakening the ratio."
     elif hdl < 40:
+        agreement = "The ratio is being pulled in the wrong direction by low HDL-C."
         driver = "Low HDL-C is the main driver."
-    elif triglycerides >= 150:
-        driver = "High triglycerides are the main driver."
     elif tg_hdl >= 3.0:
-        driver = "The ratio is metabolically unfavorable even without an extreme single value, so the combined pattern matters."
+        agreement = "The ratio looks poor even without one extreme value."
+        driver = "The combined triglyceride-HDL pattern is metabolically unfavorable and should be interpreted with glucose and waist trend."
+    elif triglycerides >= 100 and hdl >= 60:
+        agreement = "The result is mixed but partly offset."
+        driver = "Higher HDL-C is helping offset triglycerides that are not fully ideal."
     else:
-        driver = "Low triglycerides and adequate HDL-C are supporting the favorable ratio."
+        agreement = "The ratio agrees with the underlying numbers."
+        driver = "Low triglycerides and adequate HDL-C support the favorable category."
 
     if glucose is not None and glucose >= 100:
-        glucose_note = "Fasting glucose is also elevated, which makes the insulin-resistance signal more important."
+        glucose_note = "Fasting glucose is also elevated, which strengthens the insulin resistance signal."
     else:
-        glucose_note = "Fasting glucose does not add an obvious warning signal, but triglyceride/HDL can still reveal early metabolic strain."
+        glucose_note = "Fasting glucose does not add an obvious warning signal, but this ratio can still reveal early metabolic stress."
 
-    indicates = (
-        "Signal strength: triglycerides/HDL is a strong practical marker for insulin resistance risk and metabolic syndrome patterns, especially when triglycerides are high."
-    )
-    does_not_tell = (
-        "This ratio does not diagnose diabetes, measure insulin directly, show liver fat, or replace A1C, fasting insulin, blood pressure, waist, or clinical assessment."
-    )
-    practical = [
-        action,
-        "Trend guidance: best tracked over time alongside triglycerides, HDL-C, fasting glucose, A1C, and waist trend.",
-        "Common scenario: a high triglyceride metabolic profile often improves when refined carbohydrates, alcohol, excess calories, and inactivity are addressed.",
-    ]
-    bottom = "Triglycerides/HDL is one of the most useful simple ratios for metabolic health, but it should be interpreted with glucose, waist, blood pressure, and the full lipid panel."
-
-    write_standard_page(
+    render_metric_report(
         "Triglycerides/HDL Ratio",
-        f"**Your Triglycerides/HDL Ratio:** {tg_hdl:.2f}",
         [
-            f"**Triglycerides:** {triglycerides} mg/dL",
-            f"**HDL-C:** {hdl} mg/dL",
+            f"**Triglycerides/HDL Ratio:** {tg_hdl:.2f}",
+            f"**Triglycerides:** {triglycerides} mg/dL ({classify_tg(triglycerides)})",
+            f"**HDL-C:** {hdl} mg/dL ({classify_hdl(hdl)})",
         ],
         category,
         meaning,
         [driver, glucose_note],
-        indicates,
-        does_not_tell,
-        practical,
-        bottom,
+        agreement,
+        "Signal strength: triglycerides/HDL is a strong practical marker for insulin resistance risk and metabolic syndrome patterns.",
+        "This ratio does not diagnose diabetes, measure insulin directly, show liver fat, or replace A1C, fasting insulin, waist, blood pressure, or clinical assessment.",
+        [
+            action,
+            "Trend guidance: best tracked over time with triglycerides, HDL-C, fasting glucose, A1C, waist, and blood pressure.",
+            "Common scenario: a high triglyceride metabolic profile often improves when refined carbohydrates, alcohol, excess calories, and inactivity are addressed.",
+        ],
+        "Triglycerides/HDL is one of the most useful simple ratios for metabolic health, but it should be read with glucose and the full lipid panel.",
     )
