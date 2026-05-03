@@ -32,22 +32,30 @@ def show_tyg_page():
     st.subheader(f"Your TyG Index: {tyg:.2f}")
 
     if tyg < 8.0:
-        category = "Excellent / metabolically favorable"
-        meaning = "Your TyG Index is in a favorable range. This generally suggests better insulin sensitivity and lower triglyceride-glucose burden."
-        action = "Keep doing what is working. Trend this over time, especially if you change diet, training volume, body weight, or carbohydrate intake."
+        category = "Favorable / insulin sensitive"
+        meaning = "Your TyG Index is in a favorable range and generally suggests good insulin sensitivity."
+        action = "Maintain current habits. Continue trending over time, especially with changes in diet, training, or weight."
+    
     elif tyg < 8.5:
-        category = "Good / mildly watchful"
-        meaning = "Your TyG Index is still relatively favorable, but it is getting closer to the range where insulin resistance risk becomes more relevant."
-        action = "Monitor this over time. Improvements may come from lowering triglycerides, improving fasting glucose, reducing processed carbohydrates, improving sleep, and maintaining aerobic training."
+        category = "Borderline"
+        meaning = "Your TyG Index is approaching levels where insulin resistance risk may begin to increase."
+        action = "Monitor over time. Small improvements in triglycerides, fasting glucose, sleep, and diet quality can move this lower."
+    
     elif tyg < 9.0:
-        category = "Moderate insulin resistance risk"
-        meaning = "Your TyG Index is in a range commonly associated with increased insulin resistance risk. This does not diagnose insulin resistance by itself."
-        action = "Use this as a trend marker. Watch diet quality, carbohydrate tolerance, fasting glucose, triglycerides, waist size, blood pressure, A1C, and possibly fasting insulin."
+        category = "Likely insulin resistance"
+        meaning = "Your TyG Index is in a range commonly associated with insulin resistance."
+        action = "Focus on improving metabolic health: reduce processed carbs, improve triglycerides, monitor glucose trends, and maintain consistent aerobic training."
+    
+    elif tyg < 9.5:
+        category = "High risk"
+        meaning = "Your TyG Index is elevated and suggests increased risk of insulin resistance and metabolic dysfunction."
+        action = "Consider a more structured approach: diet adjustments, weight management, increased activity, and possibly additional labs such as fasting insulin or A1C."
+    
     else:
-        category = "High insulin resistance risk"
-        meaning = "Your TyG Index is elevated. Higher TyG values are commonly associated with insulin resistance, metabolic syndrome risk, fatty liver risk, and higher cardiometabolic risk."
-        action = "This is worth discussing with your clinician, especially if A1C, fasting glucose, triglycerides, blood pressure, waist size, or liver enzymes are also elevated."
-
+        category = "Very high risk"
+        meaning = "Your TyG Index is significantly elevated and strongly associated with insulin resistance and higher cardiometabolic risk."
+        action = "This warrants attention. Consider working with a clinician and reviewing full metabolic markers including A1C, fasting insulin, triglycerides, liver markers, and body composition."
+    
     st.write(f"**Category:** {category}")
     st.write(meaning)
 
