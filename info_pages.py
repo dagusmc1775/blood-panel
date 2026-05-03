@@ -150,14 +150,15 @@ def render_calculator() -> None:
     triglycerides = render_number_input("Triglycerides", "triglycerides")
     glucose = render_number_input("Fasting Glucose", "glucose")
 
-    st.subheader("Optional context markers")
+    st.subheader("Optional Lab Inputs")
+    st.caption("Leave these at 0 if ApoB or HbA1c were not included on your lab report.")
     apob = render_number_input(
-        "ApoB (optional)",
+        "ApoB (mg/dL, optional)",
         "apob",
         help_text="ApoB estimates atherogenic particle number. Leave at 0 if it was not tested.",
     )
     hba1c = render_number_input(
-        "HbA1c (optional)",
+        "HbA1c (%, optional)",
         "hba1c",
         help_text="HbA1c reflects longer-term glucose exposure. Leave at 0 if it was not tested.",
     )
@@ -657,5 +658,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
 
 
