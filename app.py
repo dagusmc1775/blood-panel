@@ -31,7 +31,11 @@ else:
             st.session_state.ldl_hdl = ldl / hdl
             st.session_state.total_hdl = total_cholesterol / hdl
             st.session_state.tg_hdl = triglycerides / hdl
-            st.session_state.has_results = True
+
+            st.session_state.calc_triglycerides = triglycerides
+            st.session_state.calc_glucose = glucose
+
+st.session_state.has_results = True
 
     if st.session_state.has_results:
         st.subheader("Results")
