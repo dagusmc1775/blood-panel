@@ -13,7 +13,7 @@ def show_info_page(page_key):
     else:
         st.error("Unknown information page.")
 
-    if st.button("Back to Calculator"):
+    if st.button("Back to Calculator", key="back_to_calculator_button"):
         st.session_state.info_page = None
         st.rerun()
 
@@ -124,8 +124,8 @@ People use TyG to:
 
 - See whether diet changes are improving insulin sensitivity
 - Decide how aggressive carbohydrate reduction or carb cycling should be
-- Track metabolic recovery alongside VO₂ max, fitness, and body composition
-- Flag hidden risk even when standard labs look “normal”
+- Track metabolic recovery alongside VOâ‚‚ max, fitness, and body composition
+- Flag hidden risk even when standard labs look â€œnormalâ€
 """)
 
     st.subheader("Bottom line")
