@@ -9,7 +9,6 @@ st.title("Blood Panel Calculator")
 if "info_page" not in st.session_state:
     st.session_state.info_page = None
 
-
 if st.session_state.info_page is not None:
     show_info_page(st.session_state.info_page)
 
@@ -25,13 +24,13 @@ else:
             st.error("HDL-C, triglycerides, and fasting glucose must be greater than zero.")
         else:
             tyg = math.log((triglycerides * glucose) / 2)
-            st.session_state.tyg = tyg
-            st.session_state.triglycerides = triglycerides
-            st.session_state.glucose = glucose
-            
             ldl_hdl = ldl / hdl
             total_hdl = total_cholesterol / hdl
             tg_hdl = triglycerides / hdl
+
+            st.session_state.tyg = tyg
+            st.session_state.triglycerides = triglycerides
+            st.session_state.glucose = glucose
 
             st.subheader("Results")
             st.write(f"**TyG Index:** {tyg:.2f}")
