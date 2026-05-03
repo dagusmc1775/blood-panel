@@ -5,11 +5,11 @@ st.set_page_config(page_title="Blood Panel Calculator", layout="centered")
 
 st.title("Blood Panel Calculator")
 
-triglycerides = st.number_input("Triglycerides (mg/dL)", min_value=0.0)
-glucose = st.number_input("Fasting Glucose (mg/dL)", min_value=0.0)
-ldl = st.number_input("LDL (mg/dL)", min_value=0.0)
-hdl = st.number_input("HDL (mg/dL)", min_value=0.0)
-total_cholesterol = st.number_input("Total Cholesterol (mg/dL)", min_value=0.0)
+total_cholesterol = st.number_input("Total Cholesterol", min_value=0, step=1)
+ldl = st.number_input("LDL-C", min_value=0, step=1)
+hdl = st.number_input("HDL-C", min_value=0, step=1)
+triglycerides = st.number_input("Triglycerides", min_value=0, step=1)
+glucose = st.number_input("Fasting Glucose", min_value=0, step=1)
 
 if st.button("Calculate"):
     if hdl <= 0 or triglycerides <= 0 or glucose <= 0:
