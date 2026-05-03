@@ -29,8 +29,6 @@ else:
             tg_hdl = triglycerides / hdl
 
             st.session_state.tyg = tyg
-            st.session_state.triglycerides = triglycerides
-            st.session_state.glucose = glucose
 
             st.subheader("Results")
             st.write(f"**TyG Index:** {tyg:.2f}")
