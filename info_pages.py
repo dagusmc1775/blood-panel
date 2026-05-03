@@ -1,4 +1,187 @@
+import math
+
 import streamlit as st
+
+
+st.set_page_config(page_title="Blood Panel Calculator", layout="centered")
+
+
+SAVED_INPUT_KEYS = {
+    "total_cholesterol": "saved_total_cholesterol",
+    "ldl": "saved_ldl",
+    "hdl": "saved_hdl",
+    "triglycerides": "saved_triglycerides",
+    "glucose": "saved_glucose",
+    "apob": "saved_apob",
+    "hba1c": "saved_hba1c",
+}
+
+
+CORE_INPUT_KEYS = {"total_cholesterol", "ldl", "hdl", "triglycerides", "glucose"}
+
+
+def initialize_session_state() -> None:
+    defaults = {
+        "info_page": None,
+        "has_results": False,
+        "tyg": None,
+        "ldl_hdl": None,
+        "total_hdl": None,
+        "tg_hdl": None,
+        "calc_total_cholesterol": None,
+        "calc_ldl": None,
+        "calc_hdl": None,
+        "calc_triglycerides": None,
+        "calc_glucose": None,
+        "calc_apob": None,
+        "calc_hba1c": None,
+        "saved_total_cholesterol": 0,
+        "saved_ldl": 0,
+        "saved_hdl": 0,
+        "saved_triglycerides": 0,
+        "saved_glucose": 0,
+        "saved_apob": 0.0,
+        "saved_hba1c": 0.0,
+    }
+    for key, value in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
+
+
+def sync_input_value(widget_key: str, saved_key: str) -> None:
+    st.session_state[saved_key] = st.session_state[widget_key]
+
+
+def render_number_input(label: str, widget_key: str, help_text: str | None = None) -> int | float:
+    saved_key = SAVED_INPUT_KEYS[widget_key]
+    if widget_key not in st.session_state:
+        st.session_state[widget_key] = st.session_state.get(saved_key, 0)
+
+    if widget_key in CORE_INPUT_KEYS:
+        return st.number_input(
+            label,
+            min_value=0,
+            step=1,
+            key=widget_key,
+            help=help_text,
+            on_change=sync_input_value,
+            args=(widget_key, saved_key),
+        )
+
+    return st.number_input(
+        label,
+        min_value=0.0,
+        step=0.1,
+        format="%.1f",
+        key=widget_key,
+        help=help_text,
+        on_change=sync_input_value,
+        args=(widget_key, saved_key),
+    )
+
+
+def normalize_optional_value(value: int | float) -> float | None:
+    numeric = float(value or 0.0)
+    if numeric <= 0.0:
+        return None
+    return numeric
+
+
+def calculate_results(
+    total_cholesterol: int,
+    ldl: int,
+    hdl: int,
+    triglycerides: int,
+    glucose: int,
+    apob: float | None,
+    hba1c: float | None,
+) -> None:
+    if hdl <= 0 or triglycerides <= 0 or glucose <= 0:
+        st.error("HDL-C, triglycerides, and fasting glucose must be greater than zero.")
+        st.session_state.has_results = False
+        return
+
+    st.session_state.calc_total_cholesterol = total_cholesterol
+    st.session_state.calc_ldl = ldl
+    st.session_state.calc_hdl = hdl
+    st.session_state.calc_triglycerides = triglycerides
+    st.session_state.calc_glucose = glucose
+    st.session_state.calc_apob = apob
+    st.session_state.calc_hba1c = hba1c
+    st.session_state.tyg = math.log((triglycerides * glucose) / 2)
+    st.session_state.ldl_hdl = ldl / hdl
+    st.session_state.total_hdl = total_cholesterol / hdl
+    st.session_state.tg_hdl = triglycerides / hdl
+    st.session_state.has_results = True
+
+
+def get_optional_marker_context() -> list[str]:
+    context = []
+    apob = st.session_state.get("calc_apob", None)
+    hba1c = st.session_state.get("calc_hba1c", None)
+
+    if apob is None:
+        context.append("ApoB not provided; atherogenic particle burden cannot be directly assessed from this app run.")
+    elif apob < 80:
+        context.append(f"ApoB: {apob:.1f} mg/dL, which supports a lower atherogenic particle burden context.")
+    elif apob < 100:
+        context.append(f"ApoB: {apob:.1f} mg/dL, an intermediate particle-burden context that should be interpreted with personal risk.")
+    else:
+        context.append(f"ApoB: {apob:.1f} mg/dL, which adds concern for higher atherogenic particle burden even if ratios look acceptable.")
+
+    if hba1c is None:
+        context.append("HbA1c not provided; longer-term glucose exposure cannot be assessed from this app run.")
+    elif hba1c < 5.7:
+        context.append(f"HbA1c: {hba1c:.1f}%, which supports a normal longer-term glucose context.")
+    elif hba1c < 6.5:
+        context.append(f"HbA1c: {hba1c:.1f}%, which adds prediabetes-range context to the metabolic interpretation.")
+    else:
+        context.append(f"HbA1c: {hba1c:.1f}%, which adds diabetes-range context and warrants clinician review.")
+
+    return context
+
+
+def render_calculator() -> None:
+    st.title("Blood Panel Calculator")
+
+    total_cholesterol = render_number_input("Total Cholesterol", "total_cholesterol")
+    ldl = render_number_input("LDL-C", "ldl")
+    hdl = render_number_input("HDL-C", "hdl")
+    triglycerides = render_number_input("Triglycerides", "triglycerides")
+    glucose = render_number_input("Fasting Glucose", "glucose")
+
+    st.subheader("Optional context markers")
+    apob = render_number_input(
+        "ApoB (optional)",
+        "apob",
+        help_text="ApoB estimates atherogenic particle number. Leave at 0 if it was not tested.",
+    )
+    hba1c = render_number_input(
+        "HbA1c (optional)",
+        "hba1c",
+        help_text="HbA1c reflects longer-term glucose exposure. Leave at 0 if it was not tested.",
+    )
+
+    if st.button("Calculate", key="calculate_button"):
+        calculate_results(
+            total_cholesterol,
+            ldl,
+            hdl,
+            triglycerides,
+            glucose,
+            normalize_optional_value(apob),
+            normalize_optional_value(hba1c),
+        )
+
+    if st.session_state.has_results:
+        st.subheader("Results")
+        st.write(f"**TyG Index:** {st.session_state.tyg:.2f}")
+        st.write(f"**LDL/HDL Ratio:** {st.session_state.ldl_hdl:.2f}")
+        st.write(f"**Total Cholesterol/HDL Ratio:** {st.session_state.total_hdl:.2f}")
+        st.write(f"**Triglycerides/HDL Ratio:** {st.session_state.tg_hdl:.2f}")
+
+        st.subheader("Learn More")
+        render_info_nav_buttons(key_prefix="main_info_nav")
 
 
 INFO_PAGES = [
@@ -102,6 +285,10 @@ def render_metric_report(
     write_lines(practical_lines)
     st.subheader("Bottom line")
     st.write(bottom_line)
+    marker_context = get_optional_marker_context()
+    if marker_context:
+        st.subheader("Optional marker context")
+        write_lines(marker_context)
     render_definition_expanders()
 
 
@@ -457,3 +644,18 @@ def show_tg_hdl_page() -> None:
         ],
         "Triglycerides/HDL is one of the most useful simple ratios for metabolic health, but it should be read with glucose and the full lipid panel.",
     )
+
+
+def main() -> None:
+    initialize_session_state()
+
+    if st.session_state.info_page is not None:
+        show_info_page(st.session_state.info_page)
+    else:
+        render_calculator()
+
+
+if __name__ == "__main__":
+    main()
+
+
