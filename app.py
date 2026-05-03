@@ -9,6 +9,9 @@ st.title("Blood Panel Calculator")
 if "info_page" not in st.session_state:
     st.session_state.info_page = None
 
+if "has_results" not in st.session_state:
+    st.session_state.has_results = False
+
 if st.session_state.info_page is not None:
     show_info_page(st.session_state.info_page)
 
@@ -22,38 +25,39 @@ else:
     if st.button("Calculate"):
         if hdl <= 0 or triglycerides <= 0 or glucose <= 0:
             st.error("HDL-C, triglycerides, and fasting glucose must be greater than zero.")
+            st.session_state.has_results = False
         else:
-            tyg = math.log((triglycerides * glucose) / 2)
-            ldl_hdl = ldl / hdl
-            total_hdl = total_cholesterol / hdl
-            tg_hdl = triglycerides / hdl
+            st.session_state.tyg = math.log((triglycerides * glucose) / 2)
+            st.session_state.ldl_hdl = ldl / hdl
+            st.session_state.total_hdl = total_cholesterol / hdl
+            st.session_state.tg_hdl = triglycerides / hdl
+            st.session_state.has_results = True
 
-            st.session_state.tyg = tyg
+    if st.session_state.has_results:
+        st.subheader("Results")
+        st.write(f"**TyG Index:** {st.session_state.tyg:.2f}")
+        st.write(f"**LDL/HDL Ratio:** {st.session_state.ldl_hdl:.2f}")
+        st.write(f"**Total Cholesterol/HDL Ratio:** {st.session_state.total_hdl:.2f}")
+        st.write(f"**Triglycerides/HDL Ratio:** {st.session_state.tg_hdl:.2f}")
 
-            st.subheader("Results")
-            st.write(f"**TyG Index:** {tyg:.2f}")
-            st.write(f"**LDL/HDL Ratio:** {ldl_hdl:.2f}")
-            st.write(f"**Total Cholesterol/HDL Ratio:** {total_hdl:.2f}")
-            st.write(f"**Triglycerides/HDL Ratio:** {tg_hdl:.2f}")
+        st.subheader("Learn More")
 
-            st.subheader("Learn More")
+        col1, col2 = st.columns(2)
 
-            col1, col2 = st.columns(2)
+        with col1:
+            if st.button("TyG Index"):
+                st.session_state.info_page = "tyg"
+                st.rerun()
 
-            with col1:
-                if st.button("TyG Index"):
-                    st.session_state.info_page = "tyg"
-                    st.rerun()
+            if st.button("Cholesterol/HDL"):
+                st.session_state.info_page = "chol_hdl"
+                st.rerun()
 
-                if st.button("Cholesterol/HDL"):
-                    st.session_state.info_page = "chol_hdl"
-                    st.rerun()
+        with col2:
+            if st.button("LDL/HDL"):
+                st.session_state.info_page = "ldl_hdl"
+                st.rerun()
 
-            with col2:
-                if st.button("LDL/HDL"):
-                    st.session_state.info_page = "ldl_hdl"
-                    st.rerun()
-
-                if st.button("Triglycerides/HDL"):
-                    st.session_state.info_page = "tg_hdl"
-                    st.rerun()
+            if st.button("Triglycerides/HDL"):
+                st.session_state.info_page = "tg_hdl"
+                st.rerun()
