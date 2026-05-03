@@ -8,12 +8,12 @@ from info_pages import render_info_nav_buttons, show_info_page
 st.set_page_config(page_title="Blood Panel Calculator", layout="centered")
 
 
-INPUT_FIELDS = {
-    "total_cholesterol": "total_cholesterol_input",
-    "ldl": "ldl_input",
-    "hdl": "hdl_input",
-    "triglycerides": "triglycerides_input",
-    "glucose": "glucose_input",
+SAVED_INPUT_KEYS = {
+    "total_cholesterol": "saved_total_cholesterol",
+    "ldl": "saved_ldl",
+    "hdl": "saved_hdl",
+    "triglycerides": "saved_triglycerides",
+    "glucose": "saved_glucose",
 }
 
 
@@ -25,29 +25,30 @@ def initialize_session_state() -> None:
         "ldl_hdl": None,
         "total_hdl": None,
         "tg_hdl": None,
-        "calc_triglycerides": None,
-        "calc_glucose": None,
+        "calc_total_cholesterol": None,
         "calc_ldl": None,
         "calc_hdl": None,
-        "total_cholesterol": 0,
-        "ldl": 0,
-        "hdl": 0,
-        "triglycerides": 0,
-        "glucose": 0,
+        "calc_triglycerides": None,
+        "calc_glucose": None,
+        "saved_total_cholesterol": 0,
+        "saved_ldl": 0,
+        "saved_hdl": 0,
+        "saved_triglycerides": 0,
+        "saved_glucose": 0,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
 
 
-def sync_input_value(state_key: str, widget_key: str) -> None:
-    st.session_state[state_key] = st.session_state[widget_key]
+def sync_input_value(widget_key: str, saved_key: str) -> None:
+    st.session_state[saved_key] = st.session_state[widget_key]
 
 
-def render_number_input(label: str, state_key: str) -> int:
-    widget_key = INPUT_FIELDS[state_key]
+def render_number_input(label: str, widget_key: str) -> int:
+    saved_key = SAVED_INPUT_KEYS[widget_key]
     if widget_key not in st.session_state:
-        st.session_state[widget_key] = int(st.session_state.get(state_key, 0))
+        st.session_state[widget_key] = int(st.session_state.get(saved_key, 0))
 
     return st.number_input(
         label,
@@ -55,7 +56,7 @@ def render_number_input(label: str, state_key: str) -> int:
         step=1,
         key=widget_key,
         on_change=sync_input_value,
-        args=(state_key, widget_key),
+        args=(widget_key, saved_key),
     )
 
 
@@ -71,14 +72,15 @@ def calculate_results(
         st.session_state.has_results = False
         return
 
-    st.session_state.tyg = math.log((triglycerides * glucose) / 2)
-    st.session_state.ldl_hdl = ldl / hdl
+    st.session_state.calc_total_cholesterol = total_cholesterol
     st.session_state.calc_ldl = ldl
     st.session_state.calc_hdl = hdl
-    st.session_state.total_hdl = total_cholesterol / hdl
-    st.session_state.tg_hdl = triglycerides / hdl
     st.session_state.calc_triglycerides = triglycerides
     st.session_state.calc_glucose = glucose
+    st.session_state.tyg = math.log((triglycerides * glucose) / 2)
+    st.session_state.ldl_hdl = ldl / hdl
+    st.session_state.total_hdl = total_cholesterol / hdl
+    st.session_state.tg_hdl = triglycerides / hdl
     st.session_state.has_results = True
 
 
@@ -116,4 +118,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
