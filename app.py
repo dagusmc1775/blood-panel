@@ -267,6 +267,7 @@ def render_metric_report(
     does_not_tell: str,
     practical_lines: list[str],
     bottom_line: str,
+    optional_marker_lines: list[str] | None = None,
 ) -> None:
     st.header(header)
     st.caption("Key terms such as atherogenic burden, metabolic stress, insulin resistance, ApoB, LDL-P, CAC score, and non-HDL cholesterol are defined in the expanders below.")
@@ -286,10 +287,9 @@ def render_metric_report(
     write_lines(practical_lines)
     st.subheader("Bottom line")
     st.write(bottom_line)
-    marker_context = get_optional_marker_context()
-    if marker_context:
+    if optional_marker_lines:
         st.subheader("Optional marker context")
-        write_lines(marker_context)
+        write_lines(optional_marker_lines)
     render_definition_expanders()
 
 
@@ -329,6 +329,73 @@ def classify_ldl(ldl: float) -> str:
     if ldl < 190:
         return "high"
     return "very high"
+
+
+def classify_apob(apob: float) -> str:
+    if apob < 80:
+        return "favorable"
+    if apob < 100:
+        return "moderate / watchful"
+    if apob < 130:
+        return "elevated"
+    return "high"
+
+
+def classify_hba1c(hba1c: float) -> str:
+    if hba1c < 5.7:
+        return "normal range"
+    if hba1c < 6.5:
+        return "prediabetes range"
+    return "diabetes-range threshold"
+
+
+def get_apob_context(ldl: float | None) -> list[str]:
+    apob = st.session_state.get("calc_apob", None)
+    if apob is None:
+        return ["ApoB was not provided; ApoB can better estimate atherogenic particle burden. LDL-C and non-HDL cholesterol are being used as indirect markers."]
+
+    lines = [f"ApoB: {apob:.1f} mg/dL ({classify_apob(apob)})."]
+    if ldl is not None and ldl < 130 and apob >= 100:
+        lines.append("LDL-C looks acceptable, but ApoB is elevated. This suggests possible discordance: particle burden may be higher than LDL-C implies.")
+    elif ldl is not None and ldl >= 130 and apob < 80:
+        lines.append("LDL-C is elevated, but ApoB is favorable. Particle burden may be less concerning than LDL-C alone suggests.")
+    elif ldl is not None and ldl >= 130 and apob >= 100:
+        lines.append("Both LDL-C and ApoB are elevated, so atherogenic burden is more strongly supported.")
+    else:
+        lines.append("ApoB refines the lipid interpretation but does not override the ratio category.")
+    return lines
+
+
+def get_hba1c_context(ratio_elevated: bool, glucose: float | None) -> list[str]:
+    hba1c = st.session_state.get("calc_hba1c", None)
+    if hba1c is None:
+        return ["HbA1c was not provided; HbA1c can provide longer-term glucose context. Fasting glucose, triglycerides, TyG, and TG/HDL are being used as proxy markers."]
+
+    lines = [f"HbA1c: {hba1c:.1f}% ({classify_hba1c(hba1c)})."]
+    hba1c_elevated = hba1c >= 5.7
+    if ratio_elevated and not hba1c_elevated:
+        lines.append("The ratio is elevated while HbA1c is normal. This may indicate early metabolic risk that has not yet shown up in longer-term glucose control.")
+    elif ratio_elevated and hba1c_elevated:
+        lines.append("Both the short-term/proxy ratio and longer-term HbA1c point toward metabolic dysfunction.")
+    elif glucose is not None and glucose < 100 and hba1c_elevated:
+        lines.append("Fasting glucose is normal, but HbA1c is elevated. Glucose control may be worse over time than the fasting snapshot suggests.")
+    else:
+        lines.append("HbA1c refines the metabolic interpretation but does not override the ratio category.")
+    return lines
+
+
+def get_apob_marker_display() -> list[str]:
+    apob = st.session_state.get("calc_apob", None)
+    if apob is None:
+        return []
+    return [f"ApoB: {apob:.1f} mg/dL"]
+
+
+def get_hba1c_marker_display() -> list[str]:
+    hba1c = st.session_state.get("calc_hba1c", None)
+    if hba1c is None:
+        return []
+    return [f"HbA1c: {hba1c:.1f}%"]
 
 
 def show_tyg_page() -> None:
@@ -392,7 +459,7 @@ def show_tyg_page() -> None:
         ],
         category,
         meaning,
-        [driver, "TyG is driven by the combination of triglycerides and glucose, not either number alone."],
+        [driver, "TyG is driven by the combination of triglycerides and glucose, not either number alone.", *get_hba1c_context(tyg >= 8.5, glucose)],
         agreement,
         "Signal strength: TyG is a strong directional indicator of metabolic health and insulin resistance risk.",
         "TyG does not diagnose diabetes, measure insulin directly, or identify whether sleep, liver fat, diet, medication, or alcohol is the root cause.",
@@ -402,6 +469,7 @@ def show_tyg_page() -> None:
             "Common scenario: a low-carb or keto profile may have good glucose but still needs triglycerides watched because TyG uses both values.",
         ],
         "TyG is inexpensive and actionable, but it is best used as a trend marker within the full metabolic picture.",
+        get_hba1c_marker_display(),
     )
 
 
@@ -469,7 +537,7 @@ def show_ldl_hdl_page() -> None:
         ],
         category,
         meaning,
-        [driver],
+        [driver, *get_apob_context(ldl)],
         agreement,
         "Signal strength: LDL/HDL is a directional cardiovascular signal, but ApoB and LDL-P are stronger for particle burden.",
         "LDL/HDL does not show ApoB, LDL-P, particle size, oxidation, CAC score, HDL function, or inflammatory risk.",
@@ -479,6 +547,7 @@ def show_ldl_hdl_page() -> None:
             "Common scenario: an endurance athlete may have high HDL-C that improves the ratio while ApoB or LDL-P still matters if LDL-C is elevated.",
         ],
         "LDL/HDL is useful, but it does not replace ApoB, LDL-P, CAC score, or inflammatory markers.",
+        get_apob_marker_display(),
     )
 
 
@@ -557,7 +626,7 @@ def show_chol_hdl_page() -> None:
         ],
         category,
         meaning,
-        [driver, *contribution],
+        [driver, *contribution, *get_apob_context(ldl)],
         agreement,
         "Signal strength: this is a broad directional signal. Total cholesterol alone can be misleading because it combines protective and atherogenic fractions.",
         "This ratio does not show ApoB, LDL-P, LDL particle size, inflammation, CAC score, or whether high total cholesterol is mostly HDL-C versus atherogenic particles.",
@@ -567,6 +636,7 @@ def show_chol_hdl_page() -> None:
             "Common scenario: a low-carb or endurance profile may raise total cholesterol while HDL-C is strong; ApoB and triglycerides help separate benign from concerning patterns.",
         ],
         "Total Cholesterol/HDL adds context, but the full lipid pattern matters more than total cholesterol alone.",
+        get_apob_marker_display(),
     )
 
 
@@ -634,7 +704,7 @@ def show_tg_hdl_page() -> None:
         ],
         category,
         meaning,
-        [driver, glucose_note],
+        [driver, glucose_note, *get_hba1c_context(tg_hdl >= 3.0, glucose)],
         agreement,
         "Signal strength: triglycerides/HDL is a strong practical marker for insulin resistance risk and metabolic syndrome patterns.",
         "This ratio does not diagnose diabetes, measure insulin directly, show liver fat, or replace A1C, fasting insulin, waist, blood pressure, or clinical assessment.",
@@ -644,6 +714,7 @@ def show_tg_hdl_page() -> None:
             "Common scenario: a high triglyceride metabolic profile often improves when refined carbohydrates, alcohol, excess calories, and inactivity are addressed.",
         ],
         "Triglycerides/HDL is one of the most useful simple ratios for metabolic health, but it should be read with glucose and the full lipid panel.",
+        get_hba1c_marker_display(),
     )
 
 
@@ -658,6 +729,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
 
 
