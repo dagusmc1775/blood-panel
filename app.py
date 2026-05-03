@@ -26,14 +26,20 @@ if st.button("Calculate"):
         st.write(f"**Total Cholesterol/HDL Ratio:** {total_hdl:.2f}")
         st.write(f"**Triglycerides/HDL Ratio:** {tg_hdl:.2f}")
 
-        st.subheader("Learn More")
+st.subheader("Learn More")
 
-        col1, col2 = st.columns(2)
+col1, col2 = st.columns(2)
 
-        with col1:
-            st.markdown("[TyG Index](TyG_Index)")
-            st.markdown("[Cholesterol/HDL](Cholesterol_HDL)")
+with col1:
+    if st.button("TyG Index"):
+        st.markdown('<meta http-equiv="refresh" content="0; url=/TyG_Index">', unsafe_allow_html=True)
 
-        with col2:
-            st.markdown("[LDL/HDL](LDL_HDL)")
-            st.markdown("[Triglycerides/HDL](Triglycerides_HDL)")
+    if st.button("Cholesterol/HDL"):
+        st.markdown('<meta http-equiv="refresh" content="0; url=/Cholesterol_HDL">', unsafe_allow_html=True)
+
+with col2:
+    if st.button("LDL/HDL"):
+        st.markdown('<meta http-equiv="refresh" content="0; url=/LDL_HDL">', unsafe_allow_html=True)
+
+    if st.button("Triglycerides/HDL"):
+        st.markdown('<meta http-equiv="refresh" content="0; url=/Triglycerides_HDL">', unsafe_allow_html=True)
