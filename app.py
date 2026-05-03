@@ -31,9 +31,9 @@ if st.button("Calculate"):
         col1, col2 = st.columns(2)
 
         with col1:
-            st.page_link("pages/1_TyG_Index.py", label="TyG Index")
-            st.page_link("pages/3_Cholesterol_HDL.py", label="Cholesterol/HDL")
+            st.markdown("[TyG Index](TyG_Index)")
+            st.markdown("[Cholesterol/HDL](Cholesterol_HDL)")
 
         with col2:
-            st.page_link("pages/2_LDL_HDL.py", label="LDL/HDL")
-            st.page_link("pages/4_Triglycerides_HDL.py", label="Triglycerides/HDL")
+            st.markdown("[LDL/HDL](LDL_HDL)")
+            st.markdown("[Triglycerides/HDL](Triglycerides_HDL)")
