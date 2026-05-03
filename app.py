@@ -8,6 +8,15 @@ from info_pages import render_info_nav_buttons, show_info_page
 st.set_page_config(page_title="Blood Panel Calculator", layout="centered")
 
 
+INPUT_FIELDS = {
+    "total_cholesterol": "total_cholesterol_input",
+    "ldl": "ldl_input",
+    "hdl": "hdl_input",
+    "triglycerides": "triglycerides_input",
+    "glucose": "glucose_input",
+}
+
+
 def initialize_session_state() -> None:
     defaults = {
         "info_page": None,
@@ -18,10 +27,34 @@ def initialize_session_state() -> None:
         "tg_hdl": None,
         "calc_triglycerides": None,
         "calc_glucose": None,
+        "total_cholesterol": 0,
+        "ldl": 0,
+        "hdl": 0,
+        "triglycerides": 0,
+        "glucose": 0,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
+
+
+def sync_input_value(state_key: str, widget_key: str) -> None:
+    st.session_state[state_key] = st.session_state[widget_key]
+
+
+def render_number_input(label: str, state_key: str) -> int:
+    widget_key = INPUT_FIELDS[state_key]
+    if widget_key not in st.session_state:
+        st.session_state[widget_key] = int(st.session_state.get(state_key, 0))
+
+    return st.number_input(
+        label,
+        min_value=0,
+        step=1,
+        key=widget_key,
+        on_change=sync_input_value,
+        args=(state_key, widget_key),
+    )
 
 
 def calculate_results(
@@ -48,21 +81,11 @@ def calculate_results(
 def render_calculator() -> None:
     st.title("Blood Panel Calculator")
 
-    total_cholesterol = st.number_input(
-        "Total Cholesterol",
-        min_value=0,
-        step=1,
-        key="total_cholesterol",
-    )
-    ldl = st.number_input("LDL-C", min_value=0, step=1, key="ldl")
-    hdl = st.number_input("HDL-C", min_value=0, step=1, key="hdl")
-    triglycerides = st.number_input(
-        "Triglycerides",
-        min_value=0,
-        step=1,
-        key="triglycerides",
-    )
-    glucose = st.number_input("Fasting Glucose", min_value=0, step=1, key="glucose")
+    total_cholesterol = render_number_input("Total Cholesterol", "total_cholesterol")
+    ldl = render_number_input("LDL-C", "ldl")
+    hdl = render_number_input("HDL-C", "hdl")
+    triglycerides = render_number_input("Triglycerides", "triglycerides")
+    glucose = render_number_input("Fasting Glucose", "glucose")
 
     if st.button("Calculate", key="calculate_button"):
         calculate_results(total_cholesterol, ldl, hdl, triglycerides, glucose)
