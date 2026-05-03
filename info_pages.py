@@ -22,7 +22,7 @@ def show_tyg_page():
     tyg = st.session_state.get("tyg", None)
     triglycerides = st.session_state.get("triglycerides", None)
     glucose = st.session_state.get("glucose", None)
-
+    
     st.header("TyG Index")
 
     if tyg is None:
