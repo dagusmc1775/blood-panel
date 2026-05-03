@@ -159,8 +159,101 @@ If your goal is long-term performance, cardiovascular health, and metabolic resi
 
 
 def show_ldl_hdl_page() -> None:
+    ldl_hdl = st.session_state.get("ldl_hdl", None)
+    ldl = st.session_state.get("calc_ldl", None)
+    hdl = st.session_state.get("calc_hdl", None)
+
     st.header("LDL/HDL Ratio")
-    st.write("LDL/HDL content here.")
+
+    if ldl_hdl is None or ldl is None or hdl is None:
+        st.warning("No LDL/HDL result is available yet. Return to the calculator and run your blood panel first.")
+        return
+
+    st.subheader(f"Your LDL/HDL Ratio: {ldl_hdl:.2f}")
+
+    if ldl_hdl < 2.0:
+        category = "Favorable"
+        meaning = "Your LDL/HDL ratio is in a favorable range and generally suggests a healthy balance between atherogenic burden and protective capacity."
+        action = "Maintain the habits supporting this pattern and keep interpreting the ratio alongside the full lipid panel and overall risk profile."
+    elif ldl_hdl < 2.5:
+        category = "Good / near ideal"
+        meaning = "Your LDL/HDL ratio is near an ideal range, though individual LDL-C, HDL-C, triglycerides, and risk factors still matter."
+        action = "Continue monitoring trends and focus on sustainable diet, exercise, sleep, and body-composition habits."
+    elif ldl_hdl < 3.5:
+        category = "Borderline / watchful"
+        meaning = "Your LDL/HDL ratio is in a watchful range where lipid balance may be drifting in a less favorable direction."
+        action = "Look at what is driving the ratio. Improving LDL-C, HDL-C, triglycerides, insulin sensitivity, and inflammation markers may be useful."
+    elif ldl_hdl < 5.0:
+        category = "Elevated risk"
+        meaning = "Your LDL/HDL ratio is elevated and may indicate a higher atherogenic burden relative to protective cholesterol transport."
+        action = "Consider a more complete cardiovascular risk review, including family history, blood pressure, metabolic markers, and advanced lipid testing."
+    else:
+        category = "High risk"
+        meaning = "Your LDL/HDL ratio is high and may reflect a lipid pattern associated with increased cardiovascular risk."
+        action = "Review this with a clinician, especially if LDL-C is high, HDL-C is low, or you have other risk factors such as hypertension, diabetes, smoking history, or family history."
+
+    if ldl < 100:
+        ldl_context = "Your LDL-C is favorable."
+    elif ldl < 130:
+        ldl_context = "Your LDL-C is near optimal or mildly elevated, depending on your risk profile."
+    elif ldl < 160:
+        ldl_context = "Your LDL-C is borderline high."
+    elif ldl < 190:
+        ldl_context = "Your LDL-C is high."
+    else:
+        ldl_context = "Your LDL-C is very high, which can suggest possible familial or genetic risk; clinician review is warranted."
+
+    if hdl < 40:
+        hdl_context = "Your HDL-C is low for men and can act as a risk amplifier."
+    elif hdl < 60:
+        hdl_context = "Your HDL-C is acceptable but not strongly protective."
+    else:
+        hdl_context = "Your HDL-C is generally protective."
+
+    if ldl >= 130 and hdl < 40:
+        driver = "Your ratio is being worsened by both high LDL-C and low HDL-C."
+    elif ldl >= 130:
+        driver = "Your ratio appears primarily LDL-driven."
+    elif hdl < 40:
+        driver = "Your ratio appears primarily HDL-driven."
+    else:
+        driver = "Your ratio is not being driven by a clearly abnormal LDL or HDL value; interpret it in the full lipid context."
+
+    st.write(f"**Category:** {category}")
+    st.write(meaning)
+
+    st.subheader("Your inputs")
+    st.write(f"**LDL-C:** {ldl} mg/dL")
+    st.write(f"**HDL-C:** {hdl} mg/dL")
+
+    st.subheader("What is driving your LDL/HDL ratio?")
+    st.write(driver)
+    st.write(ldl_context)
+    st.write(hdl_context)
+
+    st.subheader("What this number indicates")
+    st.write(action)
+
+    st.subheader("What LDL tells you")
+    st.write("LDL carries cholesterol to tissues, including artery walls. Higher LDL generally means more opportunity for plaque formation, especially when other risk factors are present. LDL is necessary; the goal is not zero LDL, but LDL that is appropriate for your risk profile.")
+
+    st.subheader("What HDL tells you")
+    st.write("HDL helps move cholesterol away from arteries and back to the liver. Higher HDL is generally favorable, but extremely high HDL does not always mean more protection. HDL function matters more than the number, and HDL function is not measured on standard labs.")
+
+    st.subheader("The real value of the LDL/HDL ratio")
+    st.write("Total cholesterol alone can be misleading. LDL and HDL help separate atherogenic burden from protective capacity, and the LDL/HDL ratio gives a quick view of that balance.")
+
+    st.subheader("What LDL/HDL reveals about metabolic health")
+    st.write("A higher LDL/HDL ratio can travel with insulin resistance, higher triglycerides, excess visceral fat, inflammation, and less favorable lifestyle patterns. It is most useful when interpreted alongside triglycerides, glucose, blood pressure, body composition, and family history.")
+
+    st.subheader("What LDL/HDL does not tell you")
+    st.write("The LDL/HDL ratio is useful, but it does not show LDL particle number, particle size, oxidation status, or inflammatory risk. It also does not replace a clinician's full cardiovascular risk assessment.")
+
+    st.subheader("Advanced tests that may help")
+    st.write("Advanced tests may include ApoB, LDL-P/NMR, hs-CRP, and CAC score. These can add context when standard cholesterol numbers do not fully explain risk.")
+
+    st.subheader("Bottom line")
+    st.write("LDL/HDL is a helpful summary marker, but it is not the whole cardiovascular story. Use it as a trend marker and risk-context clue, then interpret it alongside the full lipid panel, metabolic markers, and personal risk factors.")
 
 
 def show_chol_hdl_page() -> None:
@@ -171,3 +264,4 @@ def show_chol_hdl_page() -> None:
 def show_tg_hdl_page() -> None:
     st.header("Triglycerides/HDL Ratio")
     st.write("Triglycerides/HDL content here.")
+
