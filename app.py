@@ -13,7 +13,7 @@ glucose = st.number_input("Fasting Glucose", min_value=0, step=1)
 
 if st.button("Calculate"):
     if hdl <= 0 or triglycerides <= 0 or glucose <= 0:
-        st.error("HDL, triglycerides, and glucose must be greater than zero.")
+        st.error("HDL-C, triglycerides, and fasting glucose must be greater than zero.")
     else:
         tyg = math.log((triglycerides * glucose) / 2)
         ldl_hdl = ldl / hdl
@@ -26,14 +26,14 @@ if st.button("Calculate"):
         st.write(f"**Total Cholesterol/HDL Ratio:** {total_hdl:.2f}")
         st.write(f"**Triglycerides/HDL Ratio:** {tg_hdl:.2f}")
 
-st.subheader("Learn More")
+        st.subheader("Learn More")
 
-col1, col2 = st.columns(2)
+        col1, col2 = st.columns(2)
 
-with col1:
-    st.page_link("pages/1_TyG_Index.py", label="TyG Index")
-    st.page_link("pages/3_Cholesterol_HDL.py", label="Cholesterol/HDL")
+        with col1:
+            st.page_link("pages/1_TyG_Index.py", label="TyG Index")
+            st.page_link("pages/3_Cholesterol_HDL.py", label="Cholesterol/HDL")
 
-with col2:
-    st.page_link("pages/2_LDL_HDL.py", label="LDL/HDL")
-    st.page_link("pages/4_Triglycerides_HDL.py", label="Triglycerides/HDL")
+        with col2:
+            st.page_link("pages/2_LDL_HDL.py", label="LDL/HDL")
+            st.page_link("pages/4_Triglycerides_HDL.py", label="Triglycerides/HDL")
